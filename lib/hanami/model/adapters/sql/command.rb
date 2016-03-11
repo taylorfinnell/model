@@ -42,6 +42,11 @@ module Hanami
             _handle_database_error { @collection.insert(entity) }
           end
 
+          def upsert(entity, options = {})
+            raise 'Upsert is not supported.' unless @collection.supports_insert_select?
+            @collection.upsert(entity, options)
+          end
+
           # Updates the corresponding record for the given entity.
           #
           # @param entity [Object] the entity to persist

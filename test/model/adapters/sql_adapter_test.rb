@@ -12,6 +12,10 @@ describe Hanami::Model::Adapters::SqlAdapter do
       include Hanami::Repository
     end
 
+    class SpecialTestUserRepository
+      include Hanami::Repository
+    end
+
     class TestDevice
       include Hanami::Entity
 
@@ -192,6 +196,74 @@ describe Hanami::Model::Adapters::SqlAdapter do
 
         @entity.id.must_equal(id)
         @adapter.find(collection, @entity.id).name.must_equal @entity.name
+      end
+    end
+  end
+
+  describe '#upsert' do
+    let(:entity) { TestUser.new }
+
+    describe 'with a supported adapter' do
+      before do
+        @adapter = Hanami::Model::Adapters::SqlAdapter.new(@mapper, POSTGRES_CONNECTION_STRING)
+        @adapter.clear(collection)
+      end
+
+      describe 'with no options' do
+        it 'stores the record and assigns an id' do
+          result = @adapter.upsert(collection, entity)
+
+          result.id.wont_be_nil
+          @adapter.find(collection, result.id).must_equal result
+        end
+
+        it 'acts as an insert if no conflict' do
+          entity = TestUser.new
+
+          @adapter.upsert(collection, entity)
+          @adapter.upsert(collection, entity)
+
+          @adapter.all(collection).count.must_equal 2
+        end
+
+        it 'returns the entity' do
+          entity = TestUser.new(name: SecureRandom.uuid)
+
+          returned_entity = @adapter.upsert(collection, entity)
+
+          @adapter.first(collection).must_equal returned_entity
+        end
+
+        it 'does nothing by default on conflict' do
+          entity = TestUser.new(country_id: 123)
+
+          @adapter.upsert(collection, entity)
+          @adapter.upsert(collection, entity)
+
+          @adapter.all(collection).count.must_equal 1
+        end
+      end
+
+      describe 'with options' do
+        it 'updates the specified columns' do
+          entity = TestUser.new(country_id: 123, name: "Jim")
+          @adapter.upsert(collection, entity)
+
+          entity = TestUser.new(country_id: 123)
+          @adapter.upsert(collection, entity, target: :country_id, :update => { name: 'Bob' })
+
+          @adapter.all(collection).count.must_equal 1
+          @adapter.all(collection).first.name.must_equal 'Bob'
+        end
+      end
+    end
+
+    describe 'with a non supported adapter' do
+      it 'raises an error' do
+        -> {
+          entity = TestUser.new(country_id: 123, name: "Jim")
+          @adapter.upsert(collection, entity)
+        }.must_raise RuntimeError
       end
     end
   end

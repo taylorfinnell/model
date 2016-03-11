@@ -317,6 +317,10 @@ module Hanami
         end
       end
 
+      def upsert(entity, options = {})
+        adapter.upsert(entity, options)
+      end
+
       # Updates a record in the database corresponding to the given entity.
       #
       # If not already persisted (`id` present) it raises an exception.

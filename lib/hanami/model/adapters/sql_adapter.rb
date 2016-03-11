@@ -65,6 +65,12 @@ module Hanami
           ).create(entity)
         end
 
+        def upsert(collection, entity, options = {})
+          command(
+            query(collection)
+          ).upsert(entity, options)
+        end
+
         # Updates a record in the database corresponding to the given entity.
         #
         # @param collection [Symbol] the target collection (it must be mapped).

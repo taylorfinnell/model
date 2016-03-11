@@ -97,7 +97,7 @@ end
 
   DB.create_table :users do
     primary_key :id
-    Integer :country_id
+    Integer :country_id, unique: true
     String  :name
     Integer :age
     DateTime :created_at

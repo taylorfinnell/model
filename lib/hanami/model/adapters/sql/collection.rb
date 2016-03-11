@@ -61,6 +61,14 @@ module Hanami
             _deserialize(serialized_entity)
           end
 
+          def upsert(entity, options = {})
+            serialized_entity            = _serialize(entity)
+
+            serialized_entity[identity]  = __getobj__.insert_conflict(options).insert(serialized_entity)
+
+            _deserialize(serialized_entity)
+          end
+
           # Filters the current scope with a `limit` directive.
           #
           # @param args [Array] the array of arguments

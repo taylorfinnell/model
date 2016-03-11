@@ -318,7 +318,7 @@ module Hanami
       end
 
       def upsert(entity, options = {})
-        adapter.upsert(entity, options)
+        adapter.upsert(collection, entity, options)
       end
 
       # Updates a record in the database corresponding to the given entity.
